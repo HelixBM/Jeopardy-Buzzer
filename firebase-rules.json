@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "players": {
+          "$uid": {
+            ".validate": "newData.hasChildren(['name', 'role']) || newData.hasChildren(['online', 'lastSeen'])"
+          }
+        },
+        "state": {
+          ".validate": "newData.hasChildren(['locked', 'round'])"
+        }
+      }
+    }
+  }
+}

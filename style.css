@@ -1,0 +1,270 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #101114;
+  --card: #1c1f26;
+  --text: #f7f7f7;
+  --muted: #b7bbc6;
+  --line: #373c49;
+  --accent: #ffd447;
+  --accent-text: #191919;
+  --danger: #ff5d5d;
+  --good: #61d394;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top, #2d3342 0, #101114 45rem),
+    var(--bg);
+  color: var(--text);
+}
+
+.app {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  margin: 2rem auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--line);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 30%);
+}
+
+.hidden {
+  display: none !important;
+}
+
+h1, h2, h3, p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 1;
+}
+
+h2 {
+  margin-bottom: 0;
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+}
+
+.muted, .label {
+  color: var(--muted);
+}
+
+.label {
+  margin-bottom: .25rem;
+  font-size: .8rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+label, fieldset {
+  display: grid;
+  gap: .4rem;
+  margin: 1rem 0;
+}
+
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.radio {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  margin: .25rem 0;
+}
+
+input {
+  width: 100%;
+  padding: .9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  background: #11131a;
+  color: var(--text);
+  font: inherit;
+}
+
+button {
+  min-height: 2.8rem;
+  padding: .8rem 1rem;
+  border: 0;
+  border-radius: .9rem;
+  background: #343a48;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.danger {
+  background: var(--danger);
+  color: #151515;
+}
+
+.linkish {
+  margin-top: 1rem;
+  background: transparent;
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.error {
+  min-height: 1.5rem;
+  color: var(--danger);
+}
+
+.topbar {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.status {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+}
+
+.status.ready {
+  border-color: var(--good);
+}
+
+.status.locked {
+  border-color: var(--accent);
+  background: rgb(255 212 71 / 10%);
+}
+
+.status.waiting {
+  border-color: var(--line);
+}
+
+#statusText {
+  margin-bottom: 0;
+  font-size: clamp(1.3rem, 4vw, 2.3rem);
+  font-weight: 800;
+}
+
+.buzz {
+  display: block;
+  width: min(28rem, 100%);
+  aspect-ratio: 1;
+  margin: 2rem auto;
+  border-radius: 999rem;
+  background:
+    radial-gradient(circle at 35% 30%, #fff6bd 0, #ffd447 25%, #d53030 26%, #8f1010 70%);
+  color: white;
+  border: .8rem solid #3f0808;
+  font-size: clamp(3rem, 13vw, 6rem);
+  text-shadow: 0 .2rem .2rem rgb(0 0 0 / 45%);
+  box-shadow:
+    inset 0 -.9rem 1.5rem rgb(0 0 0 / 35%),
+    0 1rem 2.5rem rgb(0 0 0 / 45%);
+}
+
+.buzz:active:not(:disabled) {
+  transform: translateY(.25rem) scale(.99);
+}
+
+.host {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+}
+
+.host h3 {
+  width: 100%;
+  margin-bottom: .25rem;
+}
+
+.players, .history {
+  display: grid;
+  gap: .5rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.players li, .history li {
+  padding: .75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  background: rgb(255 255 255 / 3%);
+}
+
+.history {
+  list-style: decimal;
+  padding-left: 1.4rem;
+}
+
+.online::before,
+.offline::before {
+  content: "";
+  display: inline-block;
+  width: .7rem;
+  height: .7rem;
+  margin-right: .5rem;
+  border-radius: 50%;
+}
+
+.online::before {
+  background: var(--good);
+}
+
+.offline::before {
+  background: var(--muted);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f2f3f7;
+    --card: #ffffff;
+    --text: #17191f;
+    --muted: #596070;
+    --line: #d9dde7;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top, #ffffff 0, #f2f3f7 45rem),
+      var(--bg);
+  }
+
+  input {
+    background: #fff;
+  }
+}

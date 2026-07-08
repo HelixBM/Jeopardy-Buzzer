@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Classroom Buzzer</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app">
+    <section id="setup" class="card">
+      <h1>Classroom Buzzer</h1>
+      <p class="muted">Jeopardy-style: first player to buzz locks the board until the host resets.</p>
+
+      <label>
+        Room code
+        <input id="roomInput" autocomplete="off" maxlength="20" placeholder="e.g. ENGLISH11" />
+      </label>
+
+      <label>
+        Your name
+        <input id="nameInput" autocomplete="name" maxlength="30" placeholder="e.g. Team 1" />
+      </label>
+
+      <fieldset>
+        <legend>Role</legend>
+        <label class="radio"><input type="radio" name="role" value="player" checked /> Player</label>
+        <label class="radio"><input type="radio" name="role" value="host" /> Host / Teacher</label>
+      </fieldset>
+
+      <button id="joinBtn" class="primary">Join room</button>
+      <button id="makeRoomBtn" type="button">Generate room code</button>
+
+      <p id="setupError" class="error" aria-live="polite"></p>
+      <details>
+        <summary>Setup note</summary>
+        <p>
+          This app needs Firebase Realtime Database. Add your Firebase config in
+          <code>firebase-config.js</code>. See <code>README.md</code>.
+        </p>
+      </details>
+    </section>
+
+    <section id="game" class="card hidden" aria-live="polite">
+      <div class="topbar">
+        <div>
+          <p class="label">Room</p>
+          <h2 id="roomTitle">—</h2>
+        </div>
+        <button id="copyLinkBtn" type="button">Copy player link</button>
+      </div>
+
+      <div id="status" class="status waiting">
+        <p class="label">Status</p>
+        <p id="statusText">Waiting…</p>
+      </div>
+
+      <button id="buzzBtn" class="buzz">BUZZ</button>
+
+      <div id="hostControls" class="host hidden">
+        <h3>Host controls</h3>
+        <button id="resetBtn" class="primary">Reset buzzer</button>
+        <button id="lockBtn">Lock without winner</button>
+        <button id="clearBtn" class="danger">Clear room</button>
+      </div>
+
+      <section>
+        <h3>Players</h3>
+        <ul id="playersList" class="players"></ul>
+      </section>
+
+      <section>
+        <h3>Buzz history</h3>
+        <ol id="historyList" class="history"></ol>
+      </section>
+
+      <button id="leaveBtn" type="button" class="linkish">Leave room</button>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
