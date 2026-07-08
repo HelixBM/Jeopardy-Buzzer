@@ -13,6 +13,7 @@
   --accent-text: #191919;
   --danger: #ff5d5d;
   --good: #61d394;
+  --focus: #7dd3fc;
 }
 
 body {
@@ -35,7 +36,7 @@ body {
   margin: 2rem auto;
   padding: clamp(1rem, 3vw, 2rem);
   border: 1px solid var(--line);
-  border-radius: 1.5rem;
+  border-radius: .5rem;
   background: color-mix(in srgb, var(--card) 92%, transparent);
   box-shadow: 0 1rem 3rem rgb(0 0 0 / 30%);
 }
@@ -77,7 +78,7 @@ label, fieldset {
 
 fieldset {
   border: 1px solid var(--line);
-  border-radius: 1rem;
+  border-radius: .5rem;
   padding: 1rem;
 }
 
@@ -92,17 +93,49 @@ input {
   width: 100%;
   padding: .9rem 1rem;
   border: 1px solid var(--line);
-  border-radius: .9rem;
+  border-radius: .5rem;
   background: #11131a;
   color: var(--text);
   font: inherit;
+}
+
+.actions {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.setupGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.setupPanel {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: rgb(255 255 255 / 4%);
+}
+
+.setupPanel h2 {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.setupPanel button {
+  width: 100%;
+  margin-top: .5rem;
 }
 
 button {
   min-height: 2.8rem;
   padding: .8rem 1rem;
   border: 0;
-  border-radius: .9rem;
+  border-radius: .5rem;
   background: #343a48;
   color: var(--text);
   font: inherit;
@@ -112,6 +145,12 @@ button {
 
 button:hover {
   filter: brightness(1.08);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: .2rem solid var(--focus);
+  outline-offset: .15rem;
 }
 
 button:disabled {
@@ -149,11 +188,39 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.toast {
+  min-height: 1.4rem;
+  margin: .65rem 0 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.roomStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.roomStats > div {
+  min-width: 0;
+  padding: .85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: rgb(255 255 255 / 4%);
+}
+
+.roomStats p:last-child {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
 .status {
   margin: 1.5rem 0;
   padding: 1rem;
   border: 1px solid var(--line);
-  border-radius: 1rem;
+  border-radius: .5rem;
 }
 
 .status.ready {
@@ -204,7 +271,7 @@ button:disabled {
   margin: 1.5rem 0;
   padding: 1rem;
   border: 1px solid var(--line);
-  border-radius: 1rem;
+  border-radius: .5rem;
 }
 
 .host h3 {
@@ -222,7 +289,7 @@ button:disabled {
 .players li, .history li {
   padding: .75rem 1rem;
   border: 1px solid var(--line);
-  border-radius: .9rem;
+  border-radius: .5rem;
   background: rgb(255 255 255 / 3%);
 }
 
@@ -266,5 +333,37 @@ button:disabled {
 
   input {
     background: #fff;
+  }
+}
+
+@media (max-width: 640px) {
+  .app {
+    padding: .75rem;
+  }
+
+  .card {
+    margin: .75rem auto;
+  }
+
+  .actions,
+  .host {
+    display: grid;
+  }
+
+  .setupGrid {
+    grid-template-columns: 1fr;
+  }
+
+  button,
+  .actions button {
+    width: 100%;
+  }
+
+  .roomStats {
+    grid-template-columns: 1fr;
+  }
+
+  .buzz {
+    margin: 1.25rem auto;
   }
 }

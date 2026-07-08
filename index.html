@@ -12,24 +12,32 @@
       <h1>Classroom Buzzer</h1>
       <p class="muted">Jeopardy-style: first player to buzz locks the board until the host resets.</p>
 
-      <label>
-        Room code
-        <input id="roomInput" autocomplete="off" maxlength="20" placeholder="e.g. ENGLISH11" />
-      </label>
+      <div class="setupGrid">
+        <div id="teacherSetup" class="setupPanel">
+          <p class="label">Teacher</p>
+          <h2>Create a room</h2>
+          <p class="muted">Start here on the main link, then share the room code or student link with your class.</p>
+          <label>
+            Teacher name
+            <input id="teacherNameInput" autocomplete="name" maxlength="30" placeholder="e.g. Ms. Rivera" />
+          </label>
+          <button id="createRoomBtn" class="primary" type="button">Create room</button>
+        </div>
 
-      <label>
-        Your name
-        <input id="nameInput" autocomplete="name" maxlength="30" placeholder="e.g. Team 1" />
-      </label>
-
-      <fieldset>
-        <legend>Role</legend>
-        <label class="radio"><input type="radio" name="role" value="player" checked /> Player</label>
-        <label class="radio"><input type="radio" name="role" value="host" /> Host / Teacher</label>
-      </fieldset>
-
-      <button id="joinBtn" class="primary">Join room</button>
-      <button id="makeRoomBtn" type="button">Generate room code</button>
+        <div id="studentSetup" class="setupPanel">
+          <p class="label">Student</p>
+          <h2>Join a room</h2>
+          <label>
+            Room code
+            <input id="roomInput" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="e.g. ENGLISH11" />
+          </label>
+          <label>
+            Your name
+            <input id="nameInput" autocomplete="name" maxlength="30" placeholder="e.g. Team 1" />
+          </label>
+          <button id="joinBtn" class="primary" type="button">Join room</button>
+        </div>
+      </div>
 
       <p id="setupError" class="error" aria-live="polite"></p>
       <details>
@@ -48,6 +56,22 @@
           <h2 id="roomTitle">—</h2>
         </div>
         <button id="copyLinkBtn" type="button">Copy player link</button>
+      </div>
+      <p id="copyStatus" class="toast" aria-live="polite"></p>
+
+      <div class="roomStats" aria-label="Room summary">
+        <div>
+          <p class="label">Round</p>
+          <p id="roundValue">1</p>
+        </div>
+        <div>
+          <p class="label">Online</p>
+          <p id="onlineValue">0</p>
+        </div>
+        <div>
+          <p class="label">Players</p>
+          <p id="playerCountValue">0</p>
+        </div>
       </div>
 
       <div id="status" class="status waiting">
