@@ -14,7 +14,7 @@
 
       <label>
         Room code
-        <input id="roomInput" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="e.g. ENGLISH11" />
+        <input id="roomInput" autocomplete="off" maxlength="20" placeholder="e.g. ENGLISH11" />
       </label>
 
       <label>
@@ -28,10 +28,8 @@
         <label class="radio"><input type="radio" name="role" value="host" /> Host / Teacher</label>
       </fieldset>
 
-      <div class="actions">
-        <button id="joinBtn" class="primary">Join room</button>
-        <button id="makeRoomBtn" type="button">Generate room code</button>
-      </div>
+      <button id="joinBtn" class="primary">Join room</button>
+      <button id="makeRoomBtn" type="button">Generate room code</button>
 
       <p id="setupError" class="error" aria-live="polite"></p>
       <details>
@@ -50,22 +48,6 @@
           <h2 id="roomTitle">—</h2>
         </div>
         <button id="copyLinkBtn" type="button">Copy player link</button>
-      </div>
-      <p id="copyStatus" class="toast" aria-live="polite"></p>
-
-      <div class="roomStats" aria-label="Room summary">
-        <div>
-          <p class="label">Round</p>
-          <p id="roundValue">1</p>
-        </div>
-        <div>
-          <p class="label">Online</p>
-          <p id="onlineValue">0</p>
-        </div>
-        <div>
-          <p class="label">Players</p>
-          <p id="playerCountValue">0</p>
-        </div>
       </div>
 
       <div id="status" class="status waiting">

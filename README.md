@@ -69,7 +69,7 @@ Open `firebase-config.js` and replace the placeholders.
 ## Classroom use
 
 1. Open the app as host.
-2. Click **Create room**.
+2. Generate a room code.
 3. Share the player link with students.
 4. Students enter a team name.
 5. Ask a question.
