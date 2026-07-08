@@ -1,6 +1,9 @@
 import { firebaseConfig } from "./firebase-config.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getApps,
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getDatabase,
   ref,
@@ -30,6 +33,10 @@ const setupError = $("setupError");
 
 const roomTitle = $("roomTitle");
 const copyLinkBtn = $("copyLinkBtn");
+const copyStatus = $("copyStatus");
+const roundValue = $("roundValue");
+const onlineValue = $("onlineValue");
+const playerCountValue = $("playerCountValue");
 const statusBox = $("status");
 const statusText = $("statusText");
 const buzzBtn = $("buzzBtn");
@@ -51,16 +58,24 @@ let role;
 let state = null;
 let unsubscribers = [];
 let currentRound = 1;
+let playerCount = 0;
+let onlineCount = 0;
+
+const STORAGE_KEY = "classroom-buzzer-settings";
+const savedSettings = readSettings();
 
 const params = new URLSearchParams(location.search);
 if (params.get("room")) roomInput.value = params.get("room").toUpperCase();
 if (params.get("name")) nameInput.value = params.get("name");
-if (params.get("host") === "1") {
-  document.querySelector('input[name="role"][value="host"]').checked = true;
-}
+else if (savedSettings.name) nameInput.value = savedSettings.name;
+
+const savedRole = params.get("host") === "1" ? "host" : savedSettings.role;
+if (savedRole === "host") document.querySelector('input[name="role"][value="host"]').checked = true;
 
 makeRoomBtn.addEventListener("click", () => {
   roomInput.value = makeRoomCode();
+  roomInput.select();
+  nameInput.focus();
 });
 
 joinBtn.addEventListener("click", joinRoom);
@@ -69,7 +84,18 @@ resetBtn.addEventListener("click", resetBuzzer);
 lockBtn.addEventListener("click", lockWithoutWinner);
 clearBtn.addEventListener("click", clearRoom);
 copyLinkBtn.addEventListener("click", copyPlayerLink);
-leaveBtn.addEventListener("click", () => location.href = location.pathname);
+leaveBtn.addEventListener("click", leaveRoom);
+roomInput.addEventListener("input", () => {
+  const cursor = roomInput.selectionStart;
+  roomInput.value = normalizeRoom(roomInput.value);
+  roomInput.setSelectionRange(cursor, cursor);
+});
+
+for (const input of [roomInput, nameInput]) {
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") joinRoom();
+  });
+}
 
 window.addEventListener("beforeunload", () => {
   if (db && roomCode && uid) {
@@ -81,6 +107,8 @@ window.addEventListener("beforeunload", () => {
 });
 
 async function joinRoom() {
+  if (joinBtn.disabled) return;
+
   setupError.textContent = "";
 
   roomCode = normalizeRoom(roomInput.value);
@@ -90,9 +118,12 @@ async function joinRoom() {
   if (!roomCode) return showError("Enter a room code.");
   if (!playerName) return showError("Enter your name or team name.");
 
+  joinBtn.disabled = true;
+  joinBtn.textContent = "Joining...";
+
   try {
     ensureFirebaseConfig();
-    app = initializeApp(firebaseConfig);
+    app = getApps()[0] || initializeApp(firebaseConfig);
     db = getDatabase(app);
     auth = getAuth(app);
 
@@ -125,9 +156,13 @@ async function joinRoom() {
 
     enterGame();
     subscribe();
+    saveSettings({ name: playerName, role });
   } catch (err) {
     console.error(err);
     showError(cleanError(err));
+  } finally {
+    joinBtn.disabled = false;
+    joinBtn.textContent = "Join room";
   }
 }
 
@@ -137,7 +172,9 @@ function enterGame() {
   roomTitle.textContent = roomCode;
   hostControls.classList.toggle("hidden", role !== "host");
   buzzBtn.disabled = role === "host";
+  buzzBtn.textContent = role === "host" ? "HOST" : "BUZZ";
   updateUrl();
+  renderSummary();
 }
 
 function subscribe() {
@@ -163,36 +200,42 @@ function subscribe() {
 async function buzz() {
   if (!db || !roomCode || !uid || !playerName || role === "host") return;
   buzzBtn.disabled = true;
+  buzzBtn.textContent = "WAIT";
 
-  const result = await runTransaction(ref(db, `rooms/${roomCode}/state`), (oldState) => {
-    const nextState = oldState || {
-      locked: false,
-      winner: null,
-      round: 1,
-      startedAt: serverTimestamp()
-    };
+  try {
+    const result = await runTransaction(ref(db, `rooms/${roomCode}/state`), (oldState) => {
+      const nextState = oldState || {
+        locked: false,
+        winner: null,
+        round: 1,
+        startedAt: serverTimestamp()
+      };
 
-    if (nextState.locked) return; // Abort: someone already buzzed.
+      if (nextState.locked) return; // Abort: someone already buzzed.
 
-    return {
-      ...nextState,
-      locked: true,
-      winner: {
+      return {
+        ...nextState,
+        locked: true,
+        winner: {
+          uid,
+          name: playerName,
+          at: serverTimestamp()
+        },
+        updatedAt: serverTimestamp()
+      };
+    });
+
+    if (result.committed) {
+      await set(ref(db, `rooms/${roomCode}/history/${Date.now()}-${uid}`), {
+        round: currentRound,
         uid,
         name: playerName,
         at: serverTimestamp()
-      },
-      updatedAt: serverTimestamp()
-    };
-  });
-
-  if (result.committed) {
-    await set(ref(db, `rooms/${roomCode}/history/${Date.now()}-${uid}`), {
-      round: currentRound,
-      uid,
-      name: playerName,
-      at: serverTimestamp()
-    });
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    statusText.textContent = cleanError(err);
   }
 
   renderState();
@@ -227,23 +270,43 @@ async function clearRoom() {
   location.href = location.pathname;
 }
 
+async function leaveRoom() {
+  try {
+    if (db && roomCode && uid) {
+      await update(ref(db, `rooms/${roomCode}/players/${uid}`), {
+        online: false,
+        lastSeen: serverTimestamp()
+      });
+    }
+  } finally {
+    location.href = location.pathname;
+  }
+}
+
 function renderState() {
   if (!state) {
     statusText.textContent = "Connecting…";
     statusBox.className = "status waiting";
     buzzBtn.disabled = true;
+    buzzBtn.textContent = role === "host" ? "HOST" : "BUZZ";
+    renderSummary();
     return;
   }
+
+  currentRound = state.round || 1;
+  renderSummary();
 
   if (state.locked) {
     const winner = state.winner?.name || "Someone";
     statusText.textContent = `${winner} buzzed first.`;
     statusBox.className = "status locked";
     buzzBtn.disabled = true;
+    buzzBtn.textContent = "LOCKED";
   } else {
     statusText.textContent = role === "host" ? "Ready for the next question." : "Ready. Buzz now!";
     statusBox.className = "status ready";
     buzzBtn.disabled = role === "host";
+    buzzBtn.textContent = role === "host" ? "HOST" : "BUZZ";
   }
 }
 
@@ -252,6 +315,9 @@ function renderPlayers(players) {
     .sort((a, b) => Number(b.online) - Number(a.online) || String(a.name).localeCompare(String(b.name)));
 
   playersList.innerHTML = "";
+  playerCount = rows.length;
+  onlineCount = rows.filter((player) => player.online).length;
+  renderSummary();
 
   if (!rows.length) {
     playersList.innerHTML = "<li>No players yet.</li>";
@@ -292,9 +358,20 @@ async function copyPlayerLink() {
   url.searchParams.delete("host");
   url.searchParams.delete("name");
 
-  await navigator.clipboard.writeText(url.toString());
-  copyLinkBtn.textContent = "Copied!";
-  setTimeout(() => copyLinkBtn.textContent = "Copy player link", 1200);
+  try {
+    await copyText(url.toString());
+    copyStatus.textContent = "Player link copied.";
+    copyLinkBtn.textContent = "Copied";
+  } catch (err) {
+    console.error(err);
+    copyStatus.textContent = url.toString();
+    copyLinkBtn.textContent = "Copy failed";
+  }
+
+  setTimeout(() => {
+    copyStatus.textContent = "";
+    copyLinkBtn.textContent = "Copy player link";
+  }, 1800);
 }
 
 function updateUrl() {
@@ -315,6 +392,47 @@ function makeRoomCode() {
 
 function normalizeRoom(value) {
   return value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+}
+
+function renderSummary() {
+  roundValue.textContent = String(currentRound || 1);
+  onlineValue.textContent = String(onlineCount);
+  playerCountValue.textContent = String(playerCount);
+}
+
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+
+  if (!copied) throw new Error("Clipboard copy was blocked.");
+}
+
+function readSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveSettings(settings) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // Persistence is a convenience only; private browsing may block it.
+  }
 }
 
 function ensureFirebaseConfig() {
