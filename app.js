@@ -7,6 +7,7 @@ import {
 import {
   getDatabase,
   ref,
+  get,
   set,
   update,
   remove,
@@ -25,10 +26,13 @@ const $ = (id) => document.getElementById(id);
 
 const setup = $("setup");
 const game = $("game");
+const teacherSetup = $("teacherSetup");
+const studentSetup = $("studentSetup");
+const teacherNameInput = $("teacherNameInput");
+const createRoomBtn = $("createRoomBtn");
 const roomInput = $("roomInput");
 const nameInput = $("nameInput");
 const joinBtn = $("joinBtn");
-const makeRoomBtn = $("makeRoomBtn");
 const setupError = $("setupError");
 
 const roomTitle = $("roomTitle");
@@ -60,24 +64,31 @@ let unsubscribers = [];
 let currentRound = 1;
 let playerCount = 0;
 let onlineCount = 0;
+let hostRoomToRejoin = "";
 
 const STORAGE_KEY = "classroom-buzzer-settings";
 const savedSettings = readSettings();
 
 const params = new URLSearchParams(location.search);
-if (params.get("room")) roomInput.value = params.get("room").toUpperCase();
+const initialRoom = normalizeRoom(params.get("room") || "");
+const initialHost = params.get("host") === "1";
+if (initialRoom) roomInput.value = initialRoom;
 if (params.get("name")) nameInput.value = params.get("name");
 else if (savedSettings.name) nameInput.value = savedSettings.name;
 
-const savedRole = params.get("host") === "1" ? "host" : savedSettings.role;
-if (savedRole === "host") document.querySelector('input[name="role"][value="host"]').checked = true;
+if (savedSettings.teacherName) teacherNameInput.value = savedSettings.teacherName;
+else if (initialHost && params.get("name")) teacherNameInput.value = params.get("name");
 
-makeRoomBtn.addEventListener("click", () => {
-  roomInput.value = makeRoomCode();
-  roomInput.select();
+if (initialRoom && initialHost) {
+  hostRoomToRejoin = initialRoom;
+  teacherSetup.querySelector("h2").textContent = `Rejoin room ${initialRoom}`;
+  createRoomBtn.textContent = "Rejoin as teacher";
+} else if (initialRoom) {
+  studentSetup.scrollIntoView({ block: "start" });
   nameInput.focus();
-});
+}
 
+createRoomBtn.addEventListener("click", createRoom);
 joinBtn.addEventListener("click", joinRoom);
 buzzBtn.addEventListener("click", buzz);
 resetBtn.addEventListener("click", resetBuzzer);
@@ -97,6 +108,10 @@ for (const input of [roomInput, nameInput]) {
   });
 }
 
+teacherNameInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") createRoom();
+});
+
 window.addEventListener("beforeunload", () => {
   if (db && roomCode && uid) {
     update(ref(db, `rooms/${roomCode}/players/${uid}`), {
@@ -106,43 +121,20 @@ window.addEventListener("beforeunload", () => {
   }
 });
 
-async function joinRoom() {
-  if (joinBtn.disabled) return;
+async function createRoom() {
+  if (createRoomBtn.disabled) return;
 
   setupError.textContent = "";
 
-  roomCode = normalizeRoom(roomInput.value);
-  playerName = nameInput.value.trim();
-  role = document.querySelector('input[name="role"]:checked').value;
+  roomCode = hostRoomToRejoin || makeRoomCode();
+  playerName = teacherNameInput.value.trim() || "Teacher";
+  role = "host";
 
-  if (!roomCode) return showError("Enter a room code.");
-  if (!playerName) return showError("Enter your name or team name.");
-
-  joinBtn.disabled = true;
-  joinBtn.textContent = "Joining...";
+  createRoomBtn.disabled = true;
+  createRoomBtn.textContent = hostRoomToRejoin ? "Rejoining..." : "Creating...";
 
   try {
-    ensureFirebaseConfig();
-    app = getApps()[0] || initializeApp(firebaseConfig);
-    db = getDatabase(app);
-    auth = getAuth(app);
-
-    const cred = await signInAnonymously(auth);
-    uid = cred.user.uid;
-
-    await set(ref(db, `rooms/${roomCode}/players/${uid}`), {
-      name: playerName,
-      role,
-      online: true,
-      joinedAt: serverTimestamp(),
-      lastSeen: serverTimestamp()
-    });
-
-    await onDisconnect(ref(db, `rooms/${roomCode}/players/${uid}`)).update({
-      online: false,
-      lastSeen: serverTimestamp()
-    });
-
+    await initializeFirebaseSession();
     await runTransaction(ref(db, `rooms/${roomCode}/state`), (oldState) => {
       if (oldState) return oldState;
       return {
@@ -154,9 +146,47 @@ async function joinRoom() {
       };
     });
 
+    await registerPresence();
+
     enterGame();
     subscribe();
-    saveSettings({ name: playerName, role });
+    saveSettings({ name: savedSettings.name || "", teacherName: playerName });
+  } catch (err) {
+    console.error(err);
+    showError(cleanError(err));
+  } finally {
+    createRoomBtn.disabled = false;
+    createRoomBtn.textContent = hostRoomToRejoin ? "Rejoin as teacher" : "Create room";
+  }
+}
+
+async function joinRoom() {
+  if (joinBtn.disabled) return;
+
+  setupError.textContent = "";
+
+  roomCode = normalizeRoom(roomInput.value);
+  playerName = nameInput.value.trim();
+  role = "player";
+
+  if (!roomCode) return showError("Enter a room code.");
+  if (!playerName) return showError("Enter your name or team name.");
+
+  joinBtn.disabled = true;
+  joinBtn.textContent = "Joining...";
+
+  try {
+    await initializeFirebaseSession();
+    const roomState = await get(ref(db, `rooms/${roomCode}/state`));
+    if (!roomState.exists()) {
+      throw new Error("Room not found. Check the code with your teacher.");
+    }
+
+    await registerPresence();
+
+    enterGame();
+    subscribe();
+    saveSettings({ ...savedSettings, name: playerName });
   } catch (err) {
     console.error(err);
     showError(cleanError(err));
@@ -164,6 +194,31 @@ async function joinRoom() {
     joinBtn.disabled = false;
     joinBtn.textContent = "Join room";
   }
+}
+
+async function initializeFirebaseSession() {
+  ensureFirebaseConfig();
+  app = getApps()[0] || initializeApp(firebaseConfig);
+  db = getDatabase(app);
+  auth = getAuth(app);
+
+  const cred = await signInAnonymously(auth);
+  uid = cred.user.uid;
+}
+
+async function registerPresence() {
+  await set(ref(db, `rooms/${roomCode}/players/${uid}`), {
+    name: playerName,
+    role,
+    online: true,
+    joinedAt: serverTimestamp(),
+    lastSeen: serverTimestamp()
+  });
+
+  await onDisconnect(ref(db, `rooms/${roomCode}/players/${uid}`)).update({
+    online: false,
+    lastSeen: serverTimestamp()
+  });
 }
 
 function enterGame() {
@@ -377,9 +432,13 @@ async function copyPlayerLink() {
 function updateUrl() {
   const url = new URL(location.href);
   url.searchParams.set("room", roomCode);
-  url.searchParams.set("name", playerName);
-  if (role === "host") url.searchParams.set("host", "1");
-  else url.searchParams.delete("host");
+  if (role === "host") {
+    url.searchParams.set("host", "1");
+    url.searchParams.set("name", playerName);
+  } else {
+    url.searchParams.delete("host");
+    url.searchParams.delete("name");
+  }
   history.replaceState(null, "", url);
 }
 
