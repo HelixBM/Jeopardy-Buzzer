@@ -1,11 +1,3 @@
-// 1. Create a Firebase project.
-// 2. Enable Authentication → Sign-in method → Anonymous.
-// 3. Enable Realtime Database.
-// 4. Replace the placeholder values below with your Firebase web app config.
-//
-// It is normal that this config is public in a GitHub Pages app.
-// Security comes from Firebase rules, not from hiding this object.
-
 export  const firebaseConfig = {
   apiKey: "AIzaSyCV9uuL17dEv1-NXBATi6YDuwVBMEpzLy4",
   authDomain: "jeopardybuzzer-fbd57.firebaseapp.com",
