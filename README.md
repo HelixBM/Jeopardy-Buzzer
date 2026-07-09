@@ -5,7 +5,10 @@ A small Jeopardy-style online buzzer app for GitHub Pages.
 ## What it does
 
 - Players join a room with a room code.
+- Teachers open rooms from the teacher console.
+- Students join from a separate `join.html` page.
 - The first player to press **BUZZ** locks the round.
+- A buzzer sound plays when students press the button, and the host hears the winning buzz.
 - The host/teacher can reset the buzzer for the next question.
 - Works across phones, tablets, and laptops.
 - Designed for static hosting on GitHub Pages.
@@ -58,6 +61,7 @@ Open `firebase-config.js` and replace the placeholders.
 1. Create a GitHub repository.
 2. Upload these files:
    - `index.html`
+   - `join.html`
    - `style.css`
    - `app.js`
    - `firebase-config.js`
@@ -70,11 +74,19 @@ Open `firebase-config.js` and replace the placeholders.
 
 1. Open the app as host.
 2. Click **Create room**.
-3. Share the player link with students.
-4. Students enter a team name.
+3. Share the student link, open the join screen, or show the room code.
+4. Students open `join.html`, enter the room code if needed, and enter a team name.
 5. Ask a question.
 6. First buzz locks the board.
 7. Press **Reset buzzer** for the next question.
+
+## Quality-of-life ideas
+
+- Add a projector-only scoreboard page with the room code, current winner, and connected teams.
+- Add a teacher-only close-room button that prevents late joins without deleting history.
+- Add team colors or avatars to make winners easier to spot from across the room.
+- Add optional per-round points so the buzzer can track a full Jeopardy game.
+- Add an export button for buzz history after class.
 
 ## Notes
 

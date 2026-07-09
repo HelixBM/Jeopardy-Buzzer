@@ -3,37 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Teacher Console | Classroom Buzzer</title>
+  <title>Join Classroom Buzzer</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
-<body data-page="teacher">
+<body data-page="join">
   <main class="app">
     <section id="setup" class="card">
-      <h1>Teacher Console</h1>
-      <p class="muted">Open a Jeopardy-style buzzer room, then share the student join link or room code.</p>
+      <h1>Join Buzzer Room</h1>
+      <p class="muted">Enter the room code from your teacher. Rooms only work after the teacher opens them.</p>
 
-      <div id="teacherSetup" class="setupPanel setupPanelSingle">
-        <p class="label">Teacher</p>
-        <h2>Create a room</h2>
-        <p class="muted">Students use the separate join page and can only enter after this room is opened.</p>
+      <div id="studentSetup" class="setupPanel setupPanelSingle">
+        <p class="label">Student</p>
+        <h2>Join a room</h2>
         <label>
-          Teacher name
-          <input id="teacherNameInput" autocomplete="name" maxlength="30" placeholder="e.g. Ms. Rivera" />
+          Room code
+          <input id="roomInput" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="e.g. J4K9Q2" />
+        </label>
+        <label>
+          Your name
+          <input id="nameInput" autocomplete="name" maxlength="30" placeholder="e.g. Team 1" />
         </label>
         <div class="actions">
-          <button id="createRoomBtn" class="primary" type="button">Create room</button>
-          <a class="buttonLink" href="./join.html">Student join page</a>
+          <button id="joinBtn" class="primary" type="button">Join room</button>
         </div>
       </div>
 
       <p id="setupError" class="error" aria-live="polite"></p>
-      <details>
-        <summary>Setup note</summary>
-        <p>
-          This app needs Firebase Realtime Database. Add your Firebase config in
-          <code>firebase-config.js</code>. See <code>README.md</code>.
-        </p>
-      </details>
     </section>
 
     <section id="game" class="card hidden" aria-live="polite">
@@ -42,7 +37,7 @@
           <p class="label">Room</p>
           <h2 id="roomTitle">-</h2>
         </div>
-        <div id="shareActions" class="roomActions">
+        <div id="shareActions" class="roomActions hidden">
           <button id="copyLinkBtn" type="button">Copy student link</button>
           <button id="openJoinLinkBtn" type="button">Open join screen</button>
           <button id="copyCodeBtn" type="button">Copy code</button>

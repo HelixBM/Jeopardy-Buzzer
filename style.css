@@ -4,16 +4,17 @@
 
 :root {
   color-scheme: light dark;
-  --bg: #101114;
-  --card: #1c1f26;
+  --bg: #151611;
+  --card: #20231c;
   --text: #f7f7f7;
-  --muted: #b7bbc6;
-  --line: #373c49;
+  --muted: #c5c8bd;
+  --line: #3d4235;
   --accent: #ffd447;
   --accent-text: #191919;
   --danger: #ff5d5d;
   --good: #61d394;
   --focus: #7dd3fc;
+  --surface: rgb(255 255 255 / 5%);
 }
 
 body {
@@ -21,7 +22,7 @@ body {
   min-height: 100vh;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at top, #2d3342 0, #101114 45rem),
+    linear-gradient(135deg, #232817 0, #151611 48%, #1e1b16 100%),
     var(--bg);
   color: var(--text);
 }
@@ -119,19 +120,28 @@ input {
   padding: 1rem;
   border: 1px solid var(--line);
   border-radius: .5rem;
-  background: rgb(255 255 255 / 4%);
+  background: var(--surface);
+}
+
+.setupPanelSingle {
+  max-width: 42rem;
+  margin-top: 1.5rem;
 }
 
 .setupPanel h2 {
   font-size: clamp(1.45rem, 3vw, 2rem);
 }
 
-.setupPanel button {
+.setupPanel > button {
   width: 100%;
   margin-top: .5rem;
 }
 
-button {
+button,
+.buttonLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 2.8rem;
   padding: .8rem 1rem;
   border: 0;
@@ -140,14 +150,19 @@ button {
   color: var(--text);
   font: inherit;
   font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
 }
 
-button:hover {
+button:hover,
+.buttonLink:hover {
   filter: brightness(1.08);
 }
 
 button:focus-visible,
+.buttonLink:focus-visible,
 input:focus-visible {
   outline: .2rem solid var(--focus);
   outline-offset: .15rem;
@@ -188,6 +203,14 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.roomActions {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 .toast {
   min-height: 1.4rem;
   margin: .65rem 0 0;
@@ -207,7 +230,7 @@ button:disabled {
   padding: .85rem 1rem;
   border: 1px solid var(--line);
   border-radius: .5rem;
-  background: rgb(255 255 255 / 4%);
+  background: var(--surface);
 }
 
 .roomStats p:last-child {
@@ -290,7 +313,7 @@ button:disabled {
   padding: .75rem 1rem;
   border: 1px solid var(--line);
   border-radius: .5rem;
-  background: rgb(255 255 255 / 3%);
+  background: var(--surface);
 }
 
 .history {
@@ -323,11 +346,12 @@ button:disabled {
     --text: #17191f;
     --muted: #596070;
     --line: #d9dde7;
+    --surface: rgb(23 25 31 / 4%);
   }
 
   body {
     background:
-      radial-gradient(circle at top, #ffffff 0, #f2f3f7 45rem),
+      linear-gradient(135deg, #fff8d7 0, #f2f3f7 45%, #edf7f1 100%),
       var(--bg);
   }
 
@@ -346,7 +370,8 @@ button:disabled {
   }
 
   .actions,
-  .host {
+  .host,
+  .roomActions {
     display: grid;
   }
 
@@ -355,6 +380,7 @@ button:disabled {
   }
 
   button,
+  .buttonLink,
   .actions button {
     width: 100%;
   }
